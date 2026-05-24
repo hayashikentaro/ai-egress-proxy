@@ -28,6 +28,7 @@ flowchart LR
 - `src/proxy.ts`: implements broker mode by validating JSON proxy payloads, applying broker policy checks, forwarding requests, and normalizing upstream responses.
 - `src/forward-proxy.ts`: implements HTTP absolute-form forwarding and HTTPS `CONNECT` tunneling.
 - `src/destination-policy.ts`: validates forward proxy destinations, including domain allow/deny policy and private/internal/metadata IP blocking.
+- `config/*.example.json`: versionable policy profiles loaded with `AI_EGRESS_PROXY_CONFIG`.
 - `src/logging.ts`: redacts sensitive headers and writes structured JSON logs.
 
 ## Structural Enforcement
@@ -38,6 +39,7 @@ The proxy should enforce policy through mechanisms that do not depend on model o
 - Request contract: accept one explicit proxy payload shape.
 - Broker upstream policy: require HTTPS and allowed hostnames.
 - Forward destination policy: validate requested domains and resolved IP addresses before forwarding or tunneling.
+- Policy source: prefer reviewable config files for network-boundary policy, with environment variables available as deployment overrides.
 - Credential boundary: keep caller authentication and provider credentials distinct.
 - Audit boundary: emit JSONL logs from the chokepoint rather than relying on clients to self-report.
 

@@ -93,6 +93,7 @@ For HTTPS `CONNECT`, v0 allows only port `443` by default. Other ports are denie
 
 | Name | Default | Description |
 | --- | --- | --- |
+| `AI_EGRESS_PROXY_CONFIG` | empty | Optional path to a JSON policy config file, such as `./config/strict.example.json`. |
 | `PORT` | `8787` | HTTP port. |
 | `HOST` | `127.0.0.1` | Bind host. |
 | `ALLOWED_HOSTS` | `api.openai.com,api.anthropic.com,generativelanguage.googleapis.com` | Comma-separated broker-mode upstream host allowlist. |
@@ -102,6 +103,17 @@ For HTTPS `CONNECT`, v0 allows only port `443` by default. Other ports are denie
 | `PROXY_BEARER_TOKEN` | empty | Optional token required from callers as `Authorization: Bearer ...`. |
 | `MAX_REQUEST_BYTES` | `1048576` | Maximum JSON request payload size. |
 | `UPSTREAM_TIMEOUT_MS` | `60000` | Upstream fetch timeout. |
+
+Environment variables override values loaded from `AI_EGRESS_PROXY_CONFIG`.
+
+Example policy profiles:
+
+- `config/strict.example.json`: reviewable default policy for AI-provider egress.
+- `config/smoke.example.json`: permissive domain profile for local smoke tests; not recommended for deployment.
+
+```bash
+AI_EGRESS_PROXY_CONFIG=./config/strict.example.json npm run dev
+```
 
 ## Design Philosophy
 

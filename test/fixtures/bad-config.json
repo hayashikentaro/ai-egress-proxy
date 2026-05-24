@@ -1,0 +1,5 @@
+{
+  "broker": {
+    "allowedHosts": "api.openai.com"
+  }
+}

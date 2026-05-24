@@ -11,6 +11,7 @@ The project prefers structural enforcement over behavioral restriction. v0 shoul
 - Add forward proxy mode for HTTP absolute-form requests and HTTPS `CONNECT`.
 - Enforce broker upstream host allowlists.
 - Enforce forward proxy domain allow/deny policy.
+- Support optional JSON config files for versioned broker and forward proxy policy.
 - Block forward proxy destinations that resolve to private, internal, loopback, multicast, or metadata IP ranges.
 - Deny write-like HTTP absolute-form forward proxy methods by default.
 - Deny HTTPS `CONNECT` to non-443 ports by default.

@@ -22,7 +22,7 @@ It checks:
 - Denied HTTPS `CONNECT` to a non-443 port.
 - Denied metadata/private IP egress.
 
-The script intentionally sets `FORWARD_ALLOWED_DOMAINS=*` for the smoke run so that the private IP blocking check reaches IP policy instead of being denied earlier by domain policy. Do not treat that wildcard as a recommended deployment setting.
+The script uses `config/smoke.example.json`, which intentionally sets `forwardProxy.allowedDomains` to `*` so that the private IP blocking check reaches IP policy instead of being denied earlier by domain policy. Do not treat that wildcard as a recommended deployment setting.
 
 ## Requirements
 
@@ -35,6 +35,7 @@ The script intentionally sets `FORWARD_ALLOWED_DOMAINS=*` for the smoke run so t
 
 ```bash
 PROXY_PORT=18888 npm run smoke:forward
+AI_EGRESS_PROXY_CONFIG=config/smoke.example.json npm run smoke:forward
 SMOKE_ALLOWED_HTTP_URL=http://example.com/ npm run smoke:forward
 SMOKE_ALLOWED_HTTPS_URL=https://example.com/ npm run smoke:forward
 ```

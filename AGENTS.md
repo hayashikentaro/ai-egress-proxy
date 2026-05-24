@@ -19,6 +19,7 @@ This repository contains AI Egress Proxy, a TypeScript HTTP service that central
 - Forward proxy logic: `src/forward-proxy.ts`.
 - Destination policy logic: `src/destination-policy.ts`.
 - Configuration: environment variables parsed in `src/config.ts`.
+- Example policy profiles: `config/*.example.json`.
 - Documentation: `docs/`.
 
 ## Development Commands
@@ -36,6 +37,7 @@ npm run dev
 
 - Preserve both proxy modes: broker mode (`POST /v1/proxy`) and forward proxy mode (HTTP absolute-form requests plus HTTPS `CONNECT`).
 - Prefer structural enforcement over behavioral restriction. Build constraints into routing, configuration, schemas, network boundaries, and defaults instead of relying on prompts, conventions, or callers choosing to behave correctly.
+- Prefer versioned JSON policy profiles via `AI_EGRESS_PROXY_CONFIG` for reviewed network-boundary policy; keep environment variables for deployment overrides and secrets.
 - Treat outbound request details as sensitive. Never log authorization tokens, cookies, API keys, or full request bodies.
 - Prefer standard Node APIs where practical.
 - Keep provider-specific behavior out of the core proxy unless it is needed for security or interoperability.

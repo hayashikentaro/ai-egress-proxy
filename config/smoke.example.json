@@ -1,0 +1,24 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 18787
+  },
+  "broker": {
+    "allowedHosts": [
+      "api.openai.com",
+      "api.anthropic.com",
+      "generativelanguage.googleapis.com"
+    ]
+  },
+  "forwardProxy": {
+    "enabled": true,
+    "allowedDomains": [
+      "*"
+    ],
+    "deniedDomains": []
+  },
+  "limits": {
+    "maxRequestBytes": 1048576,
+    "upstreamTimeoutMs": 60000
+  }
+}
