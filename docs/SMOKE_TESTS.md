@@ -21,6 +21,7 @@ It checks:
 - Denied write-like HTTP method, using `POST`.
 - Denied HTTPS `CONNECT` to a non-443 port.
 - Denied metadata/private IP egress.
+- JSONL audit events written to the configured audit log file.
 
 The script uses `config/smoke.example.json`, which intentionally sets `forwardProxy.allowedDomains` to `*` so that the private IP blocking check reaches IP policy instead of being denied earlier by domain policy. Do not treat that wildcard as a recommended deployment setting.
 
@@ -41,3 +42,9 @@ SMOKE_ALLOWED_HTTPS_URL=https://example.com/ npm run smoke:forward
 ```
 
 The script writes the proxy JSONL audit log to a temporary file and prints its path when the smoke run passes.
+
+Set `AUDIT_LOG_PATH` to choose the smoke audit file location:
+
+```bash
+AUDIT_LOG_PATH=./egress-audit.jsonl npm run smoke:forward
+```

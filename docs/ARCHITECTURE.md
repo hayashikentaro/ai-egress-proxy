@@ -29,7 +29,7 @@ flowchart LR
 - `src/forward-proxy.ts`: implements HTTP absolute-form forwarding and HTTPS `CONNECT` tunneling.
 - `src/destination-policy.ts`: validates forward proxy destinations, including domain allow/deny policy and private/internal/metadata IP blocking.
 - `config/*.example.json`: versionable policy profiles loaded with `AI_EGRESS_PROXY_CONFIG`.
-- `src/logging.ts`: redacts sensitive headers and writes structured JSON logs.
+- `src/logging.ts`: redacts sensitive headers and writes structured JSONL audit events to stdout or `AUDIT_LOG_PATH`.
 
 ## Structural Enforcement
 
@@ -41,7 +41,7 @@ The proxy should enforce policy through mechanisms that do not depend on model o
 - Forward destination policy: validate requested domains and resolved IP addresses before forwarding or tunneling.
 - Policy source: prefer reviewable config files for network-boundary policy, with environment variables available as deployment overrides.
 - Credential boundary: keep caller authentication and provider credentials distinct.
-- Audit boundary: emit JSONL logs from the chokepoint rather than relying on clients to self-report.
+- Audit boundary: emit JSONL logs from the chokepoint to stdout or an operator-configured file rather than relying on clients to self-report.
 
 Prompts, docs, and SDK wrappers may improve ergonomics, but they are not security boundaries. When a policy matters, prefer a server-side or infrastructure-level control.
 
@@ -68,7 +68,7 @@ Prompts, docs, and SDK wrappers may improve ergonomics, but they are not securit
 7. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
 8. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
 9. Allowed `CONNECT` requests establish a TCP tunnel.
-10. Server emits redacted JSONL audit events.
+10. Server emits redacted JSONL audit events to stdout or `AUDIT_LOG_PATH`.
 
 ## Failure Model
 

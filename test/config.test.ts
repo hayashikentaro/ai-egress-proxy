@@ -22,6 +22,7 @@ describe("loadConfig", () => {
       "generativelanguage.googleapis.com"
     ]);
     assert.deepEqual(config.forwardDeniedDomains, []);
+    assert.equal(config.auditLogPath, "./egress-audit.jsonl");
   });
 
   it("lets environment variables override config file policy", () => {
@@ -31,7 +32,8 @@ describe("loadConfig", () => {
       ALLOWED_HOSTS: "example.com",
       FORWARD_ALLOWED_DOMAINS: "docs.example.com",
       FORWARD_DENIED_DOMAINS: "blocked.example.com",
-      FORWARD_PROXY_ENABLED: "false"
+      FORWARD_PROXY_ENABLED: "false",
+      AUDIT_LOG_PATH: "./override-audit.jsonl"
     });
 
     assert.equal(config.port, 9999);
@@ -39,6 +41,7 @@ describe("loadConfig", () => {
     assert.equal(config.forwardProxyEnabled, false);
     assert.deepEqual(config.forwardAllowedDomains, ["docs.example.com"]);
     assert.deepEqual(config.forwardDeniedDomains, ["blocked.example.com"]);
+    assert.equal(config.auditLogPath, "./override-audit.jsonl");
   });
 
   it("rejects malformed config file policy", () => {

@@ -8,6 +8,7 @@ export interface AppConfig {
   readonly forwardAllowedDomains: readonly string[];
   readonly forwardDeniedDomains: readonly string[];
   readonly proxyBearerToken?: string;
+  readonly auditLogPath?: string;
   readonly maxRequestBytes: number;
   readonly upstreamTimeoutMs: number;
 }
@@ -28,6 +29,9 @@ interface ConfigFile {
   readonly limits?: {
     readonly maxRequestBytes?: unknown;
     readonly upstreamTimeoutMs?: unknown;
+  };
+  readonly audit?: {
+    readonly logPath?: unknown;
   };
 }
 
@@ -70,6 +74,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       readFileStringArray(fileConfig.forwardProxy?.deniedDomains, [], "forwardProxy.deniedDomains")
     ),
     proxyBearerToken: emptyToUndefined(env.PROXY_BEARER_TOKEN),
+    auditLogPath:
+      emptyToUndefined(env.AUDIT_LOG_PATH) ?? readFileOptionalString(fileConfig.audit?.logPath, "audit.logPath"),
     maxRequestBytes: readInteger(
       env.MAX_REQUEST_BYTES,
       readFileInteger(fileConfig.limits?.maxRequestBytes, 1_048_576, "limits.maxRequestBytes"),
@@ -144,6 +150,18 @@ function readFileString(value: unknown, fallback: string, name: string): string 
 
   if (typeof value !== "string" || value.trim() === "") {
     throw new Error(`${name} must be a non-empty string`);
+  }
+
+  return value.trim();
+}
+
+function readFileOptionalString(value: unknown, name: string): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`${name} must be a non-empty string when provided`);
   }
 
   return value.trim();

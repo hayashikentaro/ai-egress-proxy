@@ -1,5 +1,8 @@
 {
   "broker": {
     "allowedHosts": "api.openai.com"
+  },
+  "audit": {
+    "logPath": 123
   }
 }

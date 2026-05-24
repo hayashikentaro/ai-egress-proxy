@@ -8,7 +8,8 @@ SMOKE_ALLOWED_HTTP_URL="${SMOKE_ALLOWED_HTTP_URL:-http://example.com/}"
 SMOKE_ALLOWED_HTTPS_URL="${SMOKE_ALLOWED_HTTPS_URL:-https://example.com/}"
 SMOKE_PRIVATE_IP_URL="${SMOKE_PRIVATE_IP_URL:-http://169.254.169.254/latest/meta-data/}"
 SMOKE_CONNECT_DENIED_TARGET="${SMOKE_CONNECT_DENIED_TARGET:-example.com:80}"
-LOG_FILE="${TMPDIR:-/tmp}/ai-egress-proxy-smoke-forward-${PROXY_PORT}.log"
+SERVER_LOG_FILE="${TMPDIR:-/tmp}/ai-egress-proxy-smoke-forward-${PROXY_PORT}.log"
+AUDIT_LOG_FILE="${AUDIT_LOG_PATH:-${TMPDIR:-/tmp}/ai-egress-proxy-smoke-forward-${PROXY_PORT}.jsonl}"
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required for the forward proxy smoke test" >&2
@@ -18,7 +19,7 @@ fi
 echo "Building project..."
 npm run build >/dev/null
 
-rm -f "$LOG_FILE"
+rm -f "$SERVER_LOG_FILE" "$AUDIT_LOG_FILE"
 
 cleanup() {
   if [[ -n "${SERVER_PID:-}" ]] && kill -0 "$SERVER_PID" >/dev/null 2>&1; then
@@ -32,7 +33,8 @@ echo "Starting AI Egress Proxy on ${PROXY_URL}..."
 PORT="$PROXY_PORT" \
 HOST="$PROXY_HOST" \
 AI_EGRESS_PROXY_CONFIG="${AI_EGRESS_PROXY_CONFIG:-config/smoke.example.json}" \
-node dist/src/index.js >"$LOG_FILE" 2>&1 &
+AUDIT_LOG_PATH="$AUDIT_LOG_FILE" \
+node dist/src/index.js >"$SERVER_LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
 for _ in 1 2 3 4 5 6 7 8 9 10; do
@@ -41,7 +43,7 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do
   fi
   if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
     echo "Proxy server exited early. Log output:" >&2
-    cat "$LOG_FILE" >&2 || true
+    cat "$SERVER_LOG_FILE" >&2 || true
     exit 1
   fi
   sleep 0.5
@@ -60,7 +62,7 @@ expect_contains() {
     echo "Actual output:" >&2
     echo "$haystack" >&2
     echo "Proxy log:" >&2
-    cat "$LOG_FILE" >&2 || true
+    cat "$SERVER_LOG_FILE" >&2 || true
     exit 1
   fi
 
@@ -118,5 +120,13 @@ echo "Checking denied metadata/private IP egress..."
 private_output="$(curl -sS --max-time 10 --proxy "$PROXY_URL" "$SMOKE_PRIVATE_IP_URL" || true)"
 expect_contains "denied private metadata IP" "$private_output" "destination_ip_blocked"
 
+if [[ ! -s "$AUDIT_LOG_FILE" ]]; then
+  echo "FAIL: audit log file was not written: ${AUDIT_LOG_FILE}" >&2
+  cat "$SERVER_LOG_FILE" >&2 || true
+  exit 1
+fi
+
+expect_contains "audit log records forward events" "$(cat "$AUDIT_LOG_FILE")" "forward."
+
 echo "Forward proxy smoke test passed."
-echo "Proxy JSONL audit log: ${LOG_FILE}"
+echo "Proxy JSONL audit log: ${AUDIT_LOG_FILE}"

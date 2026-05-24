@@ -20,6 +20,7 @@ The project prefers structural enforcement over behavioral restriction. v0 shoul
 - Forward JSON, text, and binary-like request bodies supported by `fetch`.
 - Return upstream status, selected response headers, and parsed response body.
 - Emit redacted JSONL audit logs for request attempts, outcomes, and denials.
+- Support explicit JSONL audit log file output with `AUDIT_LOG_PATH`.
 - Return AI-readable deny guidance for blocked forward proxy destinations.
 - Provide a health endpoint.
 - Document deployment expectations that make the proxy the intended egress path.

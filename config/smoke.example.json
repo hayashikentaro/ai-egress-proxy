@@ -20,5 +20,8 @@
   "limits": {
     "maxRequestBytes": 1048576,
     "upstreamTimeoutMs": 60000
+  },
+  "audit": {
+    "logPath": null
   }
 }

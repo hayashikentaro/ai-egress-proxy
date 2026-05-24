@@ -100,6 +100,7 @@ For HTTPS `CONNECT`, v0 allows only port `443` by default. Other ports are denie
 | `FORWARD_PROXY_ENABLED` | `true` | Enables HTTP forward proxy and HTTPS `CONNECT` handling. |
 | `FORWARD_ALLOWED_DOMAINS` | `api.openai.com,api.anthropic.com,generativelanguage.googleapis.com` | Comma-separated forward proxy domain allowlist. Use `*` only in tightly controlled test environments. |
 | `FORWARD_DENIED_DOMAINS` | empty | Comma-separated forward proxy domain denylist. Deny rules override allow rules. |
+| `AUDIT_LOG_PATH` | empty | Optional path for JSONL audit events, such as `./egress-audit.jsonl`. Defaults to stdout when unset. |
 | `PROXY_BEARER_TOKEN` | empty | Optional token required from callers as `Authorization: Bearer ...`. |
 | `MAX_REQUEST_BYTES` | `1048576` | Maximum JSON request payload size. |
 | `UPSTREAM_TIMEOUT_MS` | `60000` | Upstream fetch timeout. |
@@ -113,6 +114,12 @@ Example policy profiles:
 
 ```bash
 AI_EGRESS_PROXY_CONFIG=./config/strict.example.json npm run dev
+```
+
+Audit log file example:
+
+```bash
+AUDIT_LOG_PATH=./egress-audit.jsonl npm run dev
 ```
 
 ## Design Philosophy

@@ -20,6 +20,7 @@ This repository contains AI Egress Proxy, a TypeScript HTTP service that central
 - Destination policy logic: `src/destination-policy.ts`.
 - Configuration: environment variables parsed in `src/config.ts`.
 - Example policy profiles: `config/*.example.json`.
+- Audit logging: `src/logging.ts`, with optional JSONL file output via `AUDIT_LOG_PATH`.
 - Documentation: `docs/`.
 
 ## Development Commands
@@ -39,6 +40,7 @@ npm run dev
 - Prefer structural enforcement over behavioral restriction. Build constraints into routing, configuration, schemas, network boundaries, and defaults instead of relying on prompts, conventions, or callers choosing to behave correctly.
 - Prefer versioned JSON policy profiles via `AI_EGRESS_PROXY_CONFIG` for reviewed network-boundary policy; keep environment variables for deployment overrides and secrets.
 - Treat outbound request details as sensitive. Never log authorization tokens, cookies, API keys, or full request bodies.
+- Audit events must be emitted by proxy chokepoints. Use `AUDIT_LOG_PATH` or config-file `audit.logPath` when an operator needs an explicit JSONL file.
 - Prefer standard Node APIs where practical.
 - Keep provider-specific behavior out of the core proxy unless it is needed for security or interoperability.
 - Add tests for request validation and security boundaries before broadening features.
@@ -68,4 +70,5 @@ Avoid treating prompts, documentation, client-side conventions, or model instruc
 - Forward proxy HTTPS `CONNECT` allows only port `443` by default; other ports are denied because CONNECT creates an opaque TCP tunnel.
 - Hop-by-hop headers are stripped.
 - Sensitive request and response headers are redacted in logs.
+- Audit events are JSONL and may be written to an operator-configured file path.
 - `PROXY_BEARER_TOKEN` is optional for local development but should be set in any shared environment.
