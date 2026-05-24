@@ -17,6 +17,7 @@ const HOP_BY_HOP_HEADERS = new Set([
   "upgrade"
 ]);
 const SAFE_FORWARD_HTTP_METHODS = new Set(["GET", "HEAD"]);
+const DEFAULT_CONNECT_PORT = 443;
 
 export function isForwardProxyHttpRequest(request: IncomingMessage): boolean {
   const rawUrl = request.url ?? "";
@@ -122,6 +123,13 @@ export async function handleConnectRequest(
     return;
   }
 
+  const portDeny = validateConnectPort(destination.port);
+  if (portDeny) {
+    auditForwardDeny("forward.connect.deny", request, destination.hostname, portDeny);
+    writeConnectDeny(clientSocket, 403, portDeny);
+    return;
+  }
+
   const decision = await validateDestination(
     {
       hostname: destination.hostname,
@@ -167,6 +175,20 @@ export async function handleConnectRequest(
       });
     }
   });
+}
+
+export function validateConnectPort(port: number): DenyDecision | undefined {
+  if (port === DEFAULT_CONNECT_PORT) {
+    return undefined;
+  }
+
+  return {
+    allowed: false,
+    code: "connect_port_denied",
+    message: "HTTPS CONNECT is only allowed to port 443 by default",
+    guidance:
+      "Use CONNECT only for standard HTTPS destinations on port 443. Other ports are denied because CONNECT creates an opaque TCP tunnel."
+  };
 }
 
 function proxyHttpRequest(

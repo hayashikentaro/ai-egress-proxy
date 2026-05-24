@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isForwardProxyHttpRequest, validateForwardHttpMethod } from "../src/forward-proxy.js";
+import {
+  isForwardProxyHttpRequest,
+  validateConnectPort,
+  validateForwardHttpMethod
+} from "../src/forward-proxy.js";
 
 describe("forward proxy request detection", () => {
   it("detects HTTP absolute-form requests", () => {
@@ -29,6 +33,22 @@ describe("forward proxy HTTP method policy", () => {
       assert.equal(decision?.allowed, false);
       assert.equal(decision?.code, "forward_http_method_denied");
       assert.match(decision?.guidance ?? "", /broker mode/);
+    }
+  });
+});
+
+describe("forward proxy CONNECT port policy", () => {
+  it("allows CONNECT to port 443", () => {
+    assert.equal(validateConnectPort(443), undefined);
+  });
+
+  it("denies CONNECT to non-443 ports by default", () => {
+    for (const port of [80, 22, 25, 5432, 444]) {
+      const decision = validateConnectPort(port);
+
+      assert.equal(decision?.allowed, false);
+      assert.equal(decision?.code, "connect_port_denied");
+      assert.match(decision?.guidance ?? "", /opaque TCP tunnel/);
     }
   });
 });

@@ -62,6 +62,7 @@ Avoid treating prompts, documentation, client-side conventions, or model instruc
 - Forward proxy destinations must match `FORWARD_ALLOWED_DOMAINS` and must not match `FORWARD_DENIED_DOMAINS`.
 - Forward proxy destinations resolving to private, internal, loopback, multicast, or metadata IP ranges are blocked.
 - Forward proxy absolute-form HTTP requests allow `GET` and `HEAD` by default; write-like methods must be denied unless a future explicit policy adds them.
+- Forward proxy HTTPS `CONNECT` allows only port `443` by default; other ports are denied because CONNECT creates an opaque TCP tunnel.
 - Hop-by-hop headers are stripped.
 - Sensitive request and response headers are redacted in logs.
 - `PROXY_BEARER_TOKEN` is optional for local development but should be set in any shared environment.

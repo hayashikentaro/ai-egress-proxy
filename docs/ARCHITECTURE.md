@@ -61,11 +61,12 @@ Prompts, docs, and SDK wrappers may improve ergonomics, but they are not securit
 2. HTTP clients send absolute-form HTTP requests, or HTTPS clients send `CONNECT host:port`.
 3. Server extracts the destination host and port.
 4. HTTP absolute-form requests must use `GET` or `HEAD`; write-like methods are denied by default.
-5. Destination policy applies deny rules, allow rules, DNS resolution, and IP range blocking.
-6. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
-7. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
-8. Allowed `CONNECT` requests establish a TCP tunnel.
-9. Server emits redacted JSONL audit events.
+5. HTTPS `CONNECT` requests must target port `443`; other ports are denied by default.
+6. Destination policy applies deny rules, allow rules, DNS resolution, and IP range blocking.
+7. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
+8. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
+9. Allowed `CONNECT` requests establish a TCP tunnel.
+10. Server emits redacted JSONL audit events.
 
 ## Failure Model
 
@@ -100,6 +101,18 @@ Write-like forward HTTP methods are also denied with guidance:
     "code": "forward_http_method_denied",
     "message": "Forward proxy HTTP requests only allow safe read-like methods by default",
     "guidance": "Use GET or HEAD for forward proxy egress. Route write-like API calls through broker mode or ask an operator to add an explicit policy."
+  }
+}
+```
+
+Non-443 `CONNECT` requests are denied with guidance:
+
+```json
+{
+  "error": {
+    "code": "connect_port_denied",
+    "message": "HTTPS CONNECT is only allowed to port 443 by default",
+    "guidance": "Use CONNECT only for standard HTTPS destinations on port 443. Other ports are denied because CONNECT creates an opaque TCP tunnel."
   }
 }
 ```

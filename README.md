@@ -87,6 +87,8 @@ Before connecting, the proxy validates the destination domain and resolved IP ad
 
 For HTTP absolute-form requests, forward proxy mode allows `GET` and `HEAD` by default. Write-like methods such as `POST`, `PUT`, `PATCH`, and `DELETE` are denied by default so external mutation paths are unavailable unless a future explicit policy adds them.
 
+For HTTPS `CONNECT`, v0 allows only port `443` by default. Other ports are denied because `CONNECT` creates an opaque TCP tunnel and v0 does not perform HTTPS MITM inspection.
+
 ## Configuration
 
 | Name | Default | Description |

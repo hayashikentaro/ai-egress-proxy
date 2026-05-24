@@ -13,6 +13,7 @@ The project prefers structural enforcement over behavioral restriction. v0 shoul
 - Enforce forward proxy domain allow/deny policy.
 - Block forward proxy destinations that resolve to private, internal, loopback, multicast, or metadata IP ranges.
 - Deny write-like HTTP absolute-form forward proxy methods by default.
+- Deny HTTPS `CONNECT` to non-443 ports by default.
 - Require HTTPS upstream URLs for broker mode.
 - Optionally authenticate callers with a shared bearer token.
 - Forward JSON, text, and binary-like request bodies supported by `fetch`.
