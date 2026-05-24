@@ -17,6 +17,43 @@ interface JsonError {
   };
 }
 
+interface PolicySummary {
+  readonly mode: {
+    readonly broker: {
+      readonly enabled: true;
+      readonly endpoint: "/v1/proxy";
+      readonly authRequired: boolean;
+      readonly allowedHosts: readonly string[];
+      readonly httpsOnly: true;
+    };
+    readonly forwardProxy: {
+      readonly enabled: boolean;
+      readonly httpMethods: {
+        readonly allowed: readonly string[];
+        readonly deniedByDefault: readonly string[];
+      };
+      readonly connect: {
+        readonly allowedPorts: readonly number[];
+        readonly deniedOtherPortsByDefault: true;
+      };
+      readonly destinationPolicy: {
+        readonly allowedDomains: readonly string[];
+        readonly deniedDomains: readonly string[];
+        readonly blocksPrivateInternalMetadataIps: true;
+      };
+    };
+  };
+  readonly limits: {
+    readonly maxRequestBytes: number;
+    readonly upstreamTimeoutMs: number;
+  };
+  readonly audit: {
+    readonly jsonl: true;
+    readonly sink: "stdout" | "file";
+    readonly logPathConfigured: boolean;
+  };
+}
+
 export function createAppServer(config: AppConfig) {
   const server = createServer(async (request, response) => {
     try {
@@ -53,6 +90,11 @@ async function routeRequest(
     return;
   }
 
+  if (method === "GET" && url.pathname === "/policy") {
+    writeJson(response, 200, buildPolicySummary(config));
+    return;
+  }
+
   if (method === "POST" && url.pathname === "/v1/proxy") {
     authorize(request, config.proxyBearerToken);
     const body = await readJsonBody(request, config.maxRequestBytes);
@@ -67,6 +109,45 @@ async function routeRequest(
   }
 
   throw new ProxyError(404, "not_found", "Route not found");
+}
+
+export function buildPolicySummary(config: AppConfig): PolicySummary {
+  return {
+    mode: {
+      broker: {
+        enabled: true,
+        endpoint: "/v1/proxy",
+        authRequired: config.proxyBearerToken !== undefined,
+        allowedHosts: [...config.allowedHosts],
+        httpsOnly: true
+      },
+      forwardProxy: {
+        enabled: config.forwardProxyEnabled,
+        httpMethods: {
+          allowed: ["GET", "HEAD"],
+          deniedByDefault: ["POST", "PUT", "PATCH", "DELETE"]
+        },
+        connect: {
+          allowedPorts: [443],
+          deniedOtherPortsByDefault: true
+        },
+        destinationPolicy: {
+          allowedDomains: config.forwardAllowedDomains,
+          deniedDomains: config.forwardDeniedDomains,
+          blocksPrivateInternalMetadataIps: true
+        }
+      }
+    },
+    limits: {
+      maxRequestBytes: config.maxRequestBytes,
+      upstreamTimeoutMs: config.upstreamTimeoutMs
+    },
+    audit: {
+      jsonl: true,
+      sink: config.auditLogPath ? "file" : "stdout",
+      logPathConfigured: config.auditLogPath !== undefined
+    }
+  };
 }
 
 function authorize(request: IncomingMessage, expectedToken: string | undefined): void {

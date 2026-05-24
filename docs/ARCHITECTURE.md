@@ -24,7 +24,7 @@ flowchart LR
 
 - `src/index.ts`: loads configuration and starts the HTTP server.
 - `src/config.ts`: parses environment variables into a typed config object.
-- `src/server.ts`: owns HTTP routing, request reading, broker auth, JSON responses, and `CONNECT` event wiring.
+- `src/server.ts`: owns HTTP routing, request reading, broker auth, JSON responses, runtime policy summary, and `CONNECT` event wiring.
 - `src/proxy.ts`: implements broker mode by validating JSON proxy payloads, applying broker policy checks, forwarding requests, and normalizing upstream responses.
 - `src/forward-proxy.ts`: implements HTTP absolute-form forwarding and HTTPS `CONNECT` tunneling.
 - `src/destination-policy.ts`: validates forward proxy destinations, including domain allow/deny policy and private/internal/metadata IP blocking.
@@ -40,6 +40,7 @@ The proxy should enforce policy through mechanisms that do not depend on model o
 - Broker upstream policy: require HTTPS and allowed hostnames.
 - Forward destination policy: validate requested domains and resolved IP addresses before forwarding or tunneling.
 - Policy source: prefer reviewable config files for network-boundary policy, with environment variables available as deployment overrides.
+- Runtime visibility: expose effective non-secret policy at `GET /policy` so operators can inspect enforced boundaries.
 - Credential boundary: keep caller authentication and provider credentials distinct.
 - Audit boundary: emit JSONL logs from the chokepoint to stdout or an operator-configured file rather than relying on clients to self-report.
 

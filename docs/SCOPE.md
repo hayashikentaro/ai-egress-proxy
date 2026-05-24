@@ -23,6 +23,7 @@ The project prefers structural enforcement over behavioral restriction. v0 shoul
 - Support explicit JSONL audit log file output with `AUDIT_LOG_PATH`.
 - Return AI-readable deny guidance for blocked forward proxy destinations.
 - Provide a health endpoint.
+- Provide a runtime policy summary endpoint for effective non-secret configuration.
 - Document deployment expectations that make the proxy the intended egress path.
 
 ## Out of Scope for v0

@@ -21,6 +21,7 @@ This repository contains AI Egress Proxy, a TypeScript HTTP service that central
 - Configuration: environment variables parsed in `src/config.ts`.
 - Example policy profiles: `config/*.example.json`.
 - Audit logging: `src/logging.ts`, with optional JSONL file output via `AUDIT_LOG_PATH`.
+- Runtime visibility: `GET /policy` returns effective non-secret policy.
 - Documentation: `docs/`.
 
 ## Development Commands

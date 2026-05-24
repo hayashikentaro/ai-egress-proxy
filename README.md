@@ -35,6 +35,12 @@ The development server listens on `127.0.0.1:8787` by default.
 curl http://127.0.0.1:8787/health
 ```
 
+Inspect the effective non-secret runtime policy:
+
+```bash
+curl http://127.0.0.1:8787/policy
+```
+
 ## Broker Mode
 
 Send requests to `POST /v1/proxy` with a JSON body:
