@@ -1,6 +1,12 @@
 import { createServer, IncomingMessage, ServerResponse } from "node:http";
+import { Socket } from "node:net";
 import { AppConfig } from "./config.js";
 import { isProxyError, ProxyError } from "./errors.js";
+import {
+  handleConnectRequest,
+  handleForwardHttpRequest,
+  isForwardProxyHttpRequest
+} from "./forward-proxy.js";
 import { audit } from "./logging.js";
 import { proxyRequest } from "./proxy.js";
 
@@ -12,13 +18,26 @@ interface JsonError {
 }
 
 export function createAppServer(config: AppConfig) {
-  return createServer(async (request, response) => {
+  const server = createServer(async (request, response) => {
     try {
       await routeRequest(request, response, config);
     } catch (error) {
       handleError(response, error);
     }
   });
+
+  server.on("connect", (request, socket, head) => {
+    if (!config.forwardProxyEnabled) {
+      socket.end("HTTP/1.1 404 Not Found\r\nconnection: close\r\n\r\n");
+      return;
+    }
+
+    handleConnectRequest(request, socket as Socket, head, config).catch(() => {
+      socket.end("HTTP/1.1 500 Internal Server Error\r\nconnection: close\r\n\r\n");
+    });
+  });
+
+  return server;
 }
 
 async function routeRequest(
@@ -39,6 +58,11 @@ async function routeRequest(
     const body = await readJsonBody(request, config.maxRequestBytes);
     const proxied = await proxyRequest(body, config);
     writeJson(response, 200, proxied);
+    return;
+  }
+
+  if (config.forwardProxyEnabled && isForwardProxyHttpRequest(request)) {
+    await handleForwardHttpRequest(request, response, config);
     return;
   }
 
@@ -123,4 +147,3 @@ function writeJson(response: ServerResponse, statusCode: number, body: unknown):
   });
   response.end(JSON.stringify(body));
 }
-

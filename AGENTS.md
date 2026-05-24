@@ -15,7 +15,9 @@ This repository contains AI Egress Proxy, a TypeScript HTTP service that central
 - Language: TypeScript.
 - Entry point: `src/index.ts`.
 - Main HTTP server: `src/server.ts`.
-- Proxy logic: `src/proxy.ts`.
+- Broker proxy logic: `src/proxy.ts`.
+- Forward proxy logic: `src/forward-proxy.ts`.
+- Destination policy logic: `src/destination-policy.ts`.
 - Configuration: environment variables parsed in `src/config.ts`.
 - Documentation: `docs/`.
 
@@ -31,12 +33,13 @@ npm run dev
 
 ## Implementation Guidelines
 
-- Keep v0 intentionally narrow: one proxy endpoint, health endpoint, allowlist enforcement, optional caller auth, timeout handling, and redacted logging.
+- Preserve both proxy modes: broker mode (`POST /v1/proxy`) and forward proxy mode (HTTP absolute-form requests plus HTTPS `CONNECT`).
 - Prefer structural enforcement over behavioral restriction. Build constraints into routing, configuration, schemas, network boundaries, and defaults instead of relying on prompts, conventions, or callers choosing to behave correctly.
 - Treat outbound request details as sensitive. Never log authorization tokens, cookies, API keys, or full request bodies.
 - Prefer standard Node APIs where practical.
 - Keep provider-specific behavior out of the core proxy unless it is needed for security or interoperability.
 - Add tests for request validation and security boundaries before broadening features.
+- Deny decisions should include AI-readable guidance so agent/tool callers can understand the blocked path and the approved alternative.
 
 ## Design Philosophy
 
@@ -56,6 +59,8 @@ Avoid treating prompts, documentation, client-side conventions, or model instruc
 
 - Only HTTPS upstream URLs are allowed.
 - Upstream hosts must match `ALLOWED_HOSTS`.
+- Forward proxy destinations must match `FORWARD_ALLOWED_DOMAINS` and must not match `FORWARD_DENIED_DOMAINS`.
+- Forward proxy destinations resolving to private, internal, loopback, multicast, or metadata IP ranges are blocked.
 - Hop-by-hop headers are stripped.
 - Sensitive request and response headers are redacted in logs.
 - `PROXY_BEARER_TOKEN` is optional for local development but should be set in any shared environment.

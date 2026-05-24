@@ -4,12 +4,17 @@ The roadmap prioritizes structural enforcement over behavioral restriction. Feat
 
 ## v0
 
-- Minimal HTTP proxy endpoint.
-- HTTPS-only upstream enforcement.
-- Host allowlist.
+- Broker endpoint for explicit JSON proxy calls.
+- HTTP forward proxy handling.
+- HTTPS `CONNECT` handling.
+- HTTPS-only broker upstream enforcement.
+- Broker host allowlist.
+- Forward proxy domain allow/deny policy.
+- Private, internal, loopback, multicast, and metadata IP blocking.
 - Optional caller bearer token.
 - Upstream timeout.
-- Redacted audit logging.
+- Redacted JSONL audit logging.
+- AI-readable deny guidance.
 - Basic unit tests.
 
 ## v0.1
@@ -20,6 +25,7 @@ The roadmap prioritizes structural enforcement over behavioral restriction. Feat
 - Per-route policy configuration.
 - Better examples for OpenAI, Anthropic, and Gemini.
 - Deployment notes for making the proxy the default outbound AI-provider path.
+- Forward proxy integration tests with local upstream fixtures.
 
 ## v0.2
 

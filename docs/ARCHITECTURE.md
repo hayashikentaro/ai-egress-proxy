@@ -1,18 +1,22 @@
 # Architecture
 
-AI Egress Proxy v0 is a single-process Node.js HTTP service.
+AI Egress Proxy v0 is a single-process Node.js HTTP service with broker and forward proxy modes.
 
 The architecture favors structural enforcement over behavioral restriction. The service should be a real egress boundary: clients route outbound AI-provider calls through it, and the proxy enforces what is possible with code and configuration.
 
 ```mermaid
 flowchart LR
   Client["Internal client"] --> Server["AI Egress Proxy"]
-  Server --> Auth["Optional bearer auth"]
+  Server --> Broker["Broker mode: POST /v1/proxy"]
+  Server --> Forward["Forward mode: HTTP proxy + CONNECT"]
+  Broker --> Auth["Optional bearer auth"]
   Auth --> Validate["Request validation"]
-  Validate --> Policy["HTTPS + host allowlist"]
-  Policy --> Fetch["Upstream fetch with timeout"]
+  Validate --> BrokerPolicy["HTTPS + broker host allowlist"]
+  BrokerPolicy --> Fetch["Upstream fetch with timeout"]
+  Forward --> DestinationPolicy["Domain policy + IP blocking"]
+  DestinationPolicy --> Tunnel["HTTP forward or TCP tunnel"]
   Fetch --> Provider["AI provider API"]
-  Fetch --> Response["Normalized proxy response"]
+  Tunnel --> Provider
   Server --> Audit["Redacted audit log"]
 ```
 
@@ -20,8 +24,10 @@ flowchart LR
 
 - `src/index.ts`: loads configuration and starts the HTTP server.
 - `src/config.ts`: parses environment variables into a typed config object.
-- `src/server.ts`: owns HTTP routing, request reading, auth, and JSON responses.
-- `src/proxy.ts`: validates proxy payloads, applies policy checks, forwards requests, and normalizes upstream responses.
+- `src/server.ts`: owns HTTP routing, request reading, broker auth, JSON responses, and `CONNECT` event wiring.
+- `src/proxy.ts`: implements broker mode by validating JSON proxy payloads, applying broker policy checks, forwarding requests, and normalizing upstream responses.
+- `src/forward-proxy.ts`: implements HTTP absolute-form forwarding and HTTPS `CONNECT` tunneling.
+- `src/destination-policy.ts`: validates forward proxy destinations, including domain allow/deny policy and private/internal/metadata IP blocking.
 - `src/logging.ts`: redacts sensitive headers and writes structured JSON logs.
 
 ## Structural Enforcement
@@ -30,13 +36,14 @@ The proxy should enforce policy through mechanisms that do not depend on model o
 
 - Egress path: route provider-bound traffic through this service.
 - Request contract: accept one explicit proxy payload shape.
-- Upstream policy: require HTTPS and allowed hostnames.
+- Broker upstream policy: require HTTPS and allowed hostnames.
+- Forward destination policy: validate requested domains and resolved IP addresses before forwarding or tunneling.
 - Credential boundary: keep caller authentication and provider credentials distinct.
-- Audit boundary: emit logs from the chokepoint rather than relying on clients to self-report.
+- Audit boundary: emit JSONL logs from the chokepoint rather than relying on clients to self-report.
 
 Prompts, docs, and SDK wrappers may improve ergonomics, but they are not security boundaries. When a policy matters, prefer a server-side or infrastructure-level control.
 
-## Request Flow
+## Broker Request Flow
 
 1. Caller sends `POST /v1/proxy`.
 2. Server checks `PROXY_BEARER_TOKEN` when configured.
@@ -48,6 +55,17 @@ Prompts, docs, and SDK wrappers may improve ergonomics, but they are not securit
 8. Server returns upstream status, safe headers, and body.
 9. Server emits redacted audit logs.
 
+## Forward Proxy Flow
+
+1. Client configures `HTTP_PROXY` or `HTTPS_PROXY` to point at AI Egress Proxy.
+2. HTTP clients send absolute-form HTTP requests, or HTTPS clients send `CONNECT host:port`.
+3. Server extracts the destination host and port.
+4. Destination policy applies deny rules, allow rules, DNS resolution, and IP range blocking.
+5. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
+6. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
+7. Allowed `CONNECT` requests establish a TCP tunnel.
+8. Server emits redacted JSONL audit events.
+
 ## Failure Model
 
 Client errors return 4xx responses with a stable JSON error shape:
@@ -57,6 +75,18 @@ Client errors return 4xx responses with a stable JSON error shape:
   "error": {
     "code": "upstream_host_not_allowed",
     "message": "Upstream host is not allowed"
+  }
+}
+```
+
+Forward proxy denials include AI-readable guidance:
+
+```json
+{
+  "error": {
+    "code": "destination_ip_blocked",
+    "message": "Destination resolves to a private, internal, loopback, multicast, or metadata IP address",
+    "guidance": "Use a public internet destination. Internal networks and metadata services are blocked by design."
   }
 }
 ```

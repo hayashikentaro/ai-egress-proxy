@@ -2,17 +2,22 @@
 
 AI Egress Proxy v0 is a small HTTP proxy for controlled outbound AI-provider traffic.
 
-The project prefers structural enforcement over behavioral restriction. v0 should prove the basic shape of an enforced egress path: requests go through a service that can allow, deny, log, and normalize them without depending on voluntary client behavior.
+The project prefers structural enforcement over behavioral restriction. v0 should prove the basic shape of enforced egress paths: broker requests and standard forward proxy traffic go through a service that can allow, deny, log, and normalize them without depending on voluntary client behavior.
 
 ## In Scope
 
 - Accept proxy requests from trusted internal clients.
-- Enforce an upstream host allowlist.
-- Require HTTPS upstream URLs.
+- Keep broker mode with `POST /v1/proxy`.
+- Add forward proxy mode for HTTP absolute-form requests and HTTPS `CONNECT`.
+- Enforce broker upstream host allowlists.
+- Enforce forward proxy domain allow/deny policy.
+- Block forward proxy destinations that resolve to private, internal, loopback, multicast, or metadata IP ranges.
+- Require HTTPS upstream URLs for broker mode.
 - Optionally authenticate callers with a shared bearer token.
 - Forward JSON, text, and binary-like request bodies supported by `fetch`.
 - Return upstream status, selected response headers, and parsed response body.
-- Emit redacted audit logs for request attempts and outcomes.
+- Emit redacted JSONL audit logs for request attempts, outcomes, and denials.
+- Return AI-readable deny guidance for blocked forward proxy destinations.
 - Provide a health endpoint.
 - Document deployment expectations that make the proxy the intended egress path.
 
@@ -23,7 +28,8 @@ The project prefers structural enforcement over behavioral restriction. v0 shoul
 - Persistent audit storage.
 - Admin UI.
 - Provider-specific SDK abstractions.
-- Streaming response passthrough.
+- Full HTTP cache/proxy feature parity.
+- TLS interception or certificate generation.
 - mTLS, OAuth, JWT verification, or external identity provider integration.
 - Request body inspection for prompt safety or data loss prevention.
 - Prompt-only, policy-by-convention, or client-only enforcement models.
