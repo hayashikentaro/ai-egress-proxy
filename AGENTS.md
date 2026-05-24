@@ -28,6 +28,7 @@ npm install
 npm run typecheck
 npm run build
 npm test
+npm run smoke:forward
 npm run dev
 ```
 

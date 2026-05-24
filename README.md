@@ -114,4 +114,5 @@ Good deployments should make direct provider egress unnecessary or unavailable, 
 - [Scope](docs/SCOPE.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Smoke tests](docs/SMOKE_TESTS.md)
 - [Codex instructions](AGENTS.md)
