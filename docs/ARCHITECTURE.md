@@ -71,6 +71,10 @@ Prompts, docs, and SDK wrappers may improve ergonomics, but they are not securit
 9. Allowed `CONNECT` requests establish a TCP tunnel.
 10. Server emits redacted JSONL audit events to stdout or `AUDIT_LOG_PATH`.
 
+## Runtime Policy Summary
+
+`GET /policy` returns the effective non-secret configuration enforced by the running process. It reports broker mode, forward proxy mode, allowed and denied defaults, destination policy, limits, and audit sink status without exposing secret values such as bearer tokens or audit file paths.
+
 ## Failure Model
 
 Client errors return 4xx responses with a stable JSON error shape:

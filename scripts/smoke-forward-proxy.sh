@@ -69,6 +69,14 @@ expect_contains() {
   echo "PASS: ${name}"
 }
 
+echo "Checking runtime policy summary..."
+policy_output="$(curl -fsS --max-time 2 "${PROXY_URL}/policy")"
+expect_contains "policy summary includes broker mode" "$policy_output" '"broker"'
+expect_contains "policy summary includes forward proxy mode" "$policy_output" '"forwardProxy"'
+expect_contains "policy summary exposes allowed HTTP methods" "$policy_output" '"allowed":["GET","HEAD"]'
+expect_contains "policy summary exposes CONNECT 443 policy" "$policy_output" '"allowedPorts":[443]'
+expect_contains "policy summary exposes audit sink" "$policy_output" '"logPathConfigured":true'
+
 echo "Checking allowed HTTP GET through forward proxy..."
 curl -sS --max-time 10 --proxy "$PROXY_URL" "$SMOKE_ALLOWED_HTTP_URL" >/dev/null
 echo "PASS: allowed HTTP GET"

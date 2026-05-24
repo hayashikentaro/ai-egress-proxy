@@ -16,6 +16,7 @@ The script builds the project, starts a local proxy on `127.0.0.1:18787`, runs a
 
 It checks:
 
+- Runtime policy summary from `GET /policy`.
 - Allowed HTTP `GET` through the forward proxy.
 - Allowed HTTPS `CONNECT` to port `443`.
 - Denied write-like HTTP method, using `POST`.
@@ -24,6 +25,8 @@ It checks:
 - JSONL audit events written to the configured audit log file.
 
 The script uses `config/smoke.example.json`, which intentionally sets `forwardProxy.allowedDomains` to `*` so that the private IP blocking check reaches IP policy instead of being denied earlier by domain policy. Do not treat that wildcard as a recommended deployment setting.
+
+The `/policy` check confirms the running process exposes the effective non-secret policy summary, including broker mode, forward proxy mode, allowed HTTP methods, `CONNECT` port policy, and audit sink status.
 
 ## Requirements
 

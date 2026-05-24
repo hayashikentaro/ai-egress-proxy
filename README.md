@@ -41,6 +41,8 @@ Inspect the effective non-secret runtime policy:
 curl http://127.0.0.1:8787/policy
 ```
 
+The policy summary includes broker and forward proxy settings, method and `CONNECT` port rules, destination allow/deny lists, limits, and audit sink status. It intentionally reports only non-secret configuration.
+
 ## Broker Mode
 
 Send requests to `POST /v1/proxy` with a JSON body:
