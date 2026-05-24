@@ -60,11 +60,12 @@ Prompts, docs, and SDK wrappers may improve ergonomics, but they are not securit
 1. Client configures `HTTP_PROXY` or `HTTPS_PROXY` to point at AI Egress Proxy.
 2. HTTP clients send absolute-form HTTP requests, or HTTPS clients send `CONNECT host:port`.
 3. Server extracts the destination host and port.
-4. Destination policy applies deny rules, allow rules, DNS resolution, and IP range blocking.
-5. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
-6. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
-7. Allowed `CONNECT` requests establish a TCP tunnel.
-8. Server emits redacted JSONL audit events.
+4. HTTP absolute-form requests must use `GET` or `HEAD`; write-like methods are denied by default.
+5. Destination policy applies deny rules, allow rules, DNS resolution, and IP range blocking.
+6. Denied requests receive structured guidance describing why the request was blocked and what approved path to use.
+7. Allowed HTTP requests are forwarded with hop-by-hop proxy headers stripped.
+8. Allowed `CONNECT` requests establish a TCP tunnel.
+9. Server emits redacted JSONL audit events.
 
 ## Failure Model
 
@@ -87,6 +88,18 @@ Forward proxy denials include AI-readable guidance:
     "code": "destination_ip_blocked",
     "message": "Destination resolves to a private, internal, loopback, multicast, or metadata IP address",
     "guidance": "Use a public internet destination. Internal networks and metadata services are blocked by design."
+  }
+}
+```
+
+Write-like forward HTTP methods are also denied with guidance:
+
+```json
+{
+  "error": {
+    "code": "forward_http_method_denied",
+    "message": "Forward proxy HTTP requests only allow safe read-like methods by default",
+    "guidance": "Use GET or HEAD for forward proxy egress. Route write-like API calls through broker mode or ask an operator to add an explicit policy."
   }
 }
 ```

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isForwardProxyHttpRequest } from "../src/forward-proxy.js";
+import { isForwardProxyHttpRequest, validateForwardHttpMethod } from "../src/forward-proxy.js";
 
 describe("forward proxy request detection", () => {
   it("detects HTTP absolute-form requests", () => {
@@ -16,3 +16,19 @@ describe("forward proxy request detection", () => {
   });
 });
 
+describe("forward proxy HTTP method policy", () => {
+  it("allows safe read-like HTTP methods", () => {
+    assert.equal(validateForwardHttpMethod("GET"), undefined);
+    assert.equal(validateForwardHttpMethod("HEAD"), undefined);
+  });
+
+  it("denies write-like HTTP methods by default", () => {
+    for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+      const decision = validateForwardHttpMethod(method);
+
+      assert.equal(decision?.allowed, false);
+      assert.equal(decision?.code, "forward_http_method_denied");
+      assert.match(decision?.guidance ?? "", /broker mode/);
+    }
+  });
+});

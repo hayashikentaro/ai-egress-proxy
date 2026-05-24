@@ -61,6 +61,7 @@ Avoid treating prompts, documentation, client-side conventions, or model instruc
 - Upstream hosts must match `ALLOWED_HOSTS`.
 - Forward proxy destinations must match `FORWARD_ALLOWED_DOMAINS` and must not match `FORWARD_DENIED_DOMAINS`.
 - Forward proxy destinations resolving to private, internal, loopback, multicast, or metadata IP ranges are blocked.
+- Forward proxy absolute-form HTTP requests allow `GET` and `HEAD` by default; write-like methods must be denied unless a future explicit policy adds them.
 - Hop-by-hop headers are stripped.
 - Sensitive request and response headers are redacted in logs.
 - `PROXY_BEARER_TOKEN` is optional for local development but should be set in any shared environment.

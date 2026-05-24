@@ -85,6 +85,8 @@ The proxy accepts:
 
 Before connecting, the proxy validates the destination domain and resolved IP addresses. Denied requests return a structured error with a `guidance` field intended to be readable by AI agents and tool callers.
 
+For HTTP absolute-form requests, forward proxy mode allows `GET` and `HEAD` by default. Write-like methods such as `POST`, `PUT`, `PATCH`, and `DELETE` are denied by default so external mutation paths are unavailable unless a future explicit policy adds them.
+
 ## Configuration
 
 | Name | Default | Description |

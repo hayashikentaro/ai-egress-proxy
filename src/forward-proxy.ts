@@ -16,6 +16,7 @@ const HOP_BY_HOP_HEADERS = new Set([
   "transfer-encoding",
   "upgrade"
 ]);
+const SAFE_FORWARD_HTTP_METHODS = new Set(["GET", "HEAD"]);
 
 export function isForwardProxyHttpRequest(request: IncomingMessage): boolean {
   const rawUrl = request.url ?? "";
@@ -51,6 +52,13 @@ export async function handleForwardHttpRequest(
     return;
   }
 
+  const methodDeny = validateForwardHttpMethod(request.method);
+  if (methodDeny) {
+    auditForwardDeny("forward.http.deny", request, target.hostname, methodDeny);
+    writeDenyResponse(response, 405, methodDeny);
+    return;
+  }
+
   const decision = await validateDestination(
     {
       hostname: target.hostname,
@@ -78,6 +86,22 @@ export async function handleForwardHttpRequest(
   });
 
   await proxyHttpRequest(request, response, target, decision.addresses[0], startedAt);
+}
+
+export function validateForwardHttpMethod(method: string | undefined): DenyDecision | undefined {
+  const normalized = (method ?? "GET").toUpperCase();
+
+  if (SAFE_FORWARD_HTTP_METHODS.has(normalized)) {
+    return undefined;
+  }
+
+  return {
+    allowed: false,
+    code: "forward_http_method_denied",
+    message: "Forward proxy HTTP requests only allow safe read-like methods by default",
+    guidance:
+      "Use GET or HEAD for forward proxy egress. Route write-like API calls through broker mode or ask an operator to add an explicit policy."
+  };
 }
 
 export async function handleConnectRequest(
